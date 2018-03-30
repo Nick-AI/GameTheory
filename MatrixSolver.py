@@ -1,15 +1,15 @@
 import random
 import copy
+import json
 import numpy as np
 from operator import itemgetter
+from tqdm import tqdm
 from fractions import *
 from decimal import *
-
 
 def create_matrix():
     nb_rows = random.randint(2, 10)
     nb_cols = random.randint(2, 10)
-    print(nb_rows, nb_cols)
     matrix = np.random.randint(low=-15, high=15, size=(nb_rows, nb_cols), dtype=int)
     return matrix, nb_rows, nb_cols
 
@@ -17,6 +17,7 @@ def create_matrix():
 def solve_matrix(test_values=None, rows=None, cols=None, random=False):
     d = 1
     solved = False
+    count = 0
     if random:
         s_matrix, rows, cols = create_matrix()
         intial_matr = copy.deepcopy(s_matrix)
@@ -60,7 +61,6 @@ def solve_matrix(test_values=None, rows=None, cols=None, random=False):
         temp = red_top[pivot[2]]
         red_right[pivot[1]] = red_top[pivot[2]]
         red_top[pivot[2]] = temp
-
         solved = True
         for item in bot:
             if item < 0:
@@ -68,17 +68,23 @@ def solve_matrix(test_values=None, rows=None, cols=None, random=False):
         for item in right:
             if item < 0:
                 solved = False
+        count += 1
+        if count > 5000:
+            raise Exception
+
+
     v = Decimal(d/corner)
+    v += min
     v = round(v, 3)
     v = str(Fraction(v))
     row_strats = set()
     col_strats = set()
     for i in range(len(bot)):
         if blue_bot[i] is not None:
-            row_strats.add((blue_bot[i], bot[i]))
+            row_strats.add((int(blue_bot[i]), int(bot[i])))
     for i in range(len(right)):
         if red_right[i] is not None:
-            col_strats.add((red_right[i], right[i]))
+            col_strats.add((int(red_right[i]), int(right[i])))
     sorted(row_strats, key=itemgetter(0))
     sorted(col_strats, key=itemgetter(0))
     if random:
@@ -108,7 +114,8 @@ def populator(p, matrix, d, right, bot, corner):
             elif col == p[2]:
                 temp[row][col] = -1 * matrix[row][col]
             else:
-                temp[row][col] = ((matrix[row][col] * p[0]) - (matrix[p[1]][col] * matrix[row][p[2]])) / d
+                temp[row][col] = ((int(matrix[row][col]) * int(p[0])) - (int(matrix[p[1]][col]) *
+                                                                         int(matrix[row][p[2]]))) / d
 
     #augments
     for i in range(len(right)):
@@ -141,14 +148,63 @@ if __name__ == '__main__':
         print('The column player plays the following strategies with specified ratios')
         for item in col_strats:
             print('Strategy:', item[0]+1, 'Ratio:', item[1])
+    elif choice.lower() == 'g':
+        prog_bar = tqdm(total = 1000)
+        counter = 0
+        matrices = []
+        v_s = []
+        r_strats = []
+        c_strats = []
+        while counter < 1000:
+            try:
+                gen_matrix, v, row_strats, col_strats = solve_matrix(random=True)
+                if gen_matrix.tolist() in matrices:
+                    pass
+                else:
+                    matrices.append(gen_matrix.tolist())
+                    v_s.append(v)
+                    r_strats.append(list(row_strats))
+                    c_strats.append(list(col_strats))
+                    prog_bar.update(1)
+                    counter += 1
+            except Exception as ex:
+                pass
+        prog_bar.close()
+        d_log = {}
+        d_log['matrix'] = matrices
+        d_log['row_strats'] = r_strats
+        d_log['col_strats'] = c_strats
+        d_log['v'] = v_s
+
+        json_file = './data.json'
+        with open(json_file, 'w') as log_file:
+            json.dump(d_log, log_file, indent=4, sort_keys=True)
     else:
-        gen_matrix, v, row_strats, col_strats = solve_matrix(random=True)
-        print('The matrix generated was:', gen_matrix)
+        sol_found = False
+        while not sol_found:
+            try:
+                gen_matrix, v, row_strats, col_strats = solve_matrix(random=True)
+                sol_found = True
+            except:
+                pass
+        print('The matrix generated was:\n', gen_matrix)
         print("The game's value v=", v)
         print('The row player plays the following strategies with specified ratios')
         for item in row_strats:
-            print('Strategy:', item[0], 'Ratio:', item[1])
+            print('Strategy:', item[0]+1, 'Ratio:', item[1])
         print('The column player plays the following strategies with specified ratios')
         for item in col_strats:
-            print('Strategy:', item[0], 'Ratio:', item[1])
+            print('Strategy:', item[0]+1, 'Ratio:', item[1])
 
+"""
+y
+2x3
+1, -3, 2
+3, -2, 4
+
+y
+3x3
+6, 0, 3
+8, -2, 3
+4, 6, 5
+"""
