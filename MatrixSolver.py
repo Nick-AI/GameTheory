@@ -130,71 +130,76 @@ def populator(p, matrix, d, right, bot, corner):
     return temp, temp_right, temp_bot, corner
 
 
-if __name__ == '__main__':
-    choice = input('If you want to solve a specific matrix, enter "y".\nIf you would rather generate a random matrix '
-                   'with solution, type in "n"')
-    if choice.lower() == 'y':
-        dims = input('What are the dimensions of your matrix? Enter as rows x columns').strip().lower().split('x')
-        print('Input your rows, one by one, separated by pressing enter, with the items separated by commas.')
-        matr = []
-        for i in range(int(dims[0])):
-            elems = input('Enter row '+ str(i+1))
-            matr.append([int(item) for item in elems.strip().split(',')])
-        v, row_strats, col_strats = solve_matrix(test_values=matr, rows=int(dims[0]), cols=int(dims[1]))
-        print("The game's value v=", v)
-        print('The row player plays the following strategies with specified ratios')
-        for item in row_strats:
-            print('Strategy:', item[0]+1, 'Ratio:', item[1])
-        print('The column player plays the following strategies with specified ratios')
-        for item in col_strats:
-            print('Strategy:', item[0]+1, 'Ratio:', item[1])
-    elif choice.lower() == 'g':
-        prog_bar = tqdm(total = 1000)
-        counter = 0
-        matrices = []
-        v_s = []
-        r_strats = []
-        c_strats = []
-        while counter < 1000:
-            try:
-                gen_matrix, v, row_strats, col_strats = solve_matrix(random=True)
-                if gen_matrix.tolist() in matrices:
+if __name__.endswith('__main__'):
+    while True:
+        choice = input('If you want to solve a specific matrix, enter "y".\nIf you would rather generate a random '
+                       'matrix with solution, type in "n"\n')
+        if choice.lower() == 'y':
+            dims = input('What are the dimensions of your matrix? Enter as rows x columns\n').strip().lower().split('x')
+            print('Input your rows, one by one, separated by pressing enter, with the items separated by commas.')
+            matr = []
+            for i in range(int(dims[0])):
+                elems = input('Enter row '+ str(i+1))
+                matr.append([int(item) for item in elems.strip().split(',')])
+            v, row_strats, col_strats = solve_matrix(test_values=matr, rows=int(dims[0]), cols=int(dims[1]))
+            print("The game's value v=", v)
+            print('The row player plays the following strategies with specified ratios')
+            for item in row_strats:
+                print('Strategy:', item[0]+1, 'Ratio:', item[1])
+            print('The column player plays the following strategies with specified ratios')
+            for item in col_strats:
+                print('Strategy:', item[0]+1, 'Ratio:', item[1])
+        elif choice.lower() == 'g':
+            prog_bar = tqdm(total = 1000)
+            counter = 0
+            matrices = []
+            v_s = []
+            r_strats = []
+            c_strats = []
+            while counter < 1000:
+                try:
+                    gen_matrix, v, row_strats, col_strats = solve_matrix(random=True)
+                    if gen_matrix.tolist() in matrices:
+                        pass
+                    else:
+                        matrices.append(gen_matrix.tolist())
+                        v_s.append(v)
+                        r_strats.append(list(row_strats))
+                        c_strats.append(list(col_strats))
+                        prog_bar.update(1)
+                        counter += 1
+                except Exception as ex:
                     pass
-                else:
-                    matrices.append(gen_matrix.tolist())
-                    v_s.append(v)
-                    r_strats.append(list(row_strats))
-                    c_strats.append(list(col_strats))
-                    prog_bar.update(1)
-                    counter += 1
-            except Exception as ex:
-                pass
-        prog_bar.close()
-        d_log = {}
-        d_log['matrix'] = matrices
-        d_log['row_strats'] = r_strats
-        d_log['col_strats'] = c_strats
-        d_log['v'] = v_s
+            prog_bar.close()
+            d_log = {}
+            d_log['matrix'] = matrices
+            d_log['row_strats'] = r_strats
+            d_log['col_strats'] = c_strats
+            d_log['v'] = v_s
 
-        json_file = './data.json'
-        with open(json_file, 'w') as log_file:
-            json.dump(d_log, log_file, indent=4, sort_keys=True)
-    else:
-        sol_found = False
-        while not sol_found:
-            try:
-                gen_matrix, v, row_strats, col_strats = solve_matrix(random=True)
-                sol_found = True
-            except:
-                pass
-        print('The matrix generated was:\n', gen_matrix)
-        print("The game's value v=", v)
-        print('The row player plays the following strategies with specified ratios')
-        for item in row_strats:
-            print('Strategy:', item[0]+1, 'Ratio:', item[1])
-        print('The column player plays the following strategies with specified ratios')
-        for item in col_strats:
-            print('Strategy:', item[0]+1, 'Ratio:', item[1])
+            json_file = './data.json'
+            with open(json_file, 'w') as log_file:
+                json.dump(d_log, log_file, indent=4, sort_keys=True)
+        else:
+            sol_found = False
+            while not sol_found:
+                try:
+                    gen_matrix, v, row_strats, col_strats = solve_matrix(random=True)
+                    sol_found = True
+                except:
+                    pass
+            print('The matrix generated was:\n', gen_matrix)
+            print("The game's value v=", v)
+            print('The row player plays the following strategies with specified ratios')
+            for item in row_strats:
+                print('Strategy:', item[0]+1, 'Ratio:', item[1])
+            print('The column player plays the following strategies with specified ratios')
+            for item in col_strats:
+                print('Strategy:', item[0]+1, 'Ratio:', item[1])
+        if input('If you wish to continue, enter "yes", otherwise enter "no".\n').lower()[0] == 'n':
+            break
+
+
 
 """
 y
